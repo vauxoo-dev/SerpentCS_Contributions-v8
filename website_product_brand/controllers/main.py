@@ -15,18 +15,18 @@ class table_compute(object):
 
     def _check_place(self, posx, posy, sizex, sizey):
         res = True
-        for y in range(sizey):
-            for x in range(sizex):
-                if posx + x >= PPR:
+        for axisy in range(sizey):
+            for axisx in range(sizex):
+                if posx + axisx >= PPR:
                     res = False
                     break
-                row = self.table.setdefault(posy + y, {})
-                if row.setdefault(posx + x) is not None:
+                row = self.table.setdefault(posy + axisy, {})
+                if row.setdefault(posx + axisx) is not None:
                     res = False
                     break
 
-            for x in range(PPR):
-                self.table[posy + y].setdefault(x, None)
+            for axisx in range(PPR):
+                self.table[posy + axisy].setdefault(axisx, None)
 
         return res
 
@@ -34,21 +34,21 @@ class table_compute(object):
         minpos = 0
         index = 0
         maxy = 0
-        for p in products:
-            x = min(max(p.website_size_x, 1), PPR)
-            y = min(max(p.website_size_y, 1), PPR)
+        for prod in products:
+            axisx = min(max(prod.website_size_x, 1), PPR)
+            axisy = min(max(prod.website_size_y, 1), PPR)
             if index > PPG:
-                x = y = 1
+                axisx = axisy = 1
             pos = minpos
-            while not self._check_place(pos % PPR, pos / PPR, x, y):
+            while not self._check_place(pos % PPR, pos / PPR, axisx, axisy):
                 pos += 1
 
             if index > PPG and pos / PPR > maxy:
                 break
-            if x == 1 and y == 1:
+            if axisx == 1 and axisy == 1:
                 minpos = pos / PPR
-            for y2 in range(y):
-                for x2 in range(x):
+            for y2 in range(axisy):
+                for x2 in range(axisx):
                     self.table[pos / PPR + y2][pos % PPR + x2] = False
 
             self.table[
@@ -56,23 +56,25 @@ class table_compute(object):
                 PPR][
                 pos %
                 PPR] = {
-                'product': p,
-                'x': x,
-                'y': y,
+                'product': prod,
+                'x': axisx,
+                'y': axisy,
                 'class': ' '.join(
                     map(
-                        lambda x: x.html_class or '',
-                        p.website_style_ids))}
+                        lambda axisx: axisx.html_class or '',
+                        prod.website_style_ids))}  # pylint: disable=W0141
             if index <= PPG:
-                maxy = max(maxy, y + pos / PPR)
+                maxy = max(maxy, axisy + pos / PPR)
             index += 1
 
         rows = sorted(self.table.items())
-        rows = map(lambda x: x[1], rows)
+        rows = map(lambda axisx: axisx[1], rows)  # pylint: disable=W0141
         for col in range(len(rows)):
             cols = sorted(rows[col].items())
-            x += len(cols)
-            rows[col] = [c for c in map(lambda x: x[1], cols) if c]
+            axisx += len(cols)
+            rows[col] = [c for c in
+                         map(lambda axisx: axisx[1], cols) if
+                         c]  # pylint: disable=W0141
 
         return rows
 
@@ -89,16 +91,16 @@ class QueryURL(object):
         for k, v in self.args.items():
             kw.setdefault(k, v)
 
-        l = []
+        lst = []
         for k, v in kw.items():
             if v:
                 if isinstance(v, list) or isinstance(v, set):
-                    l.append(werkzeug.url_encode([(k, i) for i in v]))
+                    lst.append(werkzeug.url_encode([(k, i) for i in v]))
                 else:
-                    l.append(werkzeug.url_encode([(k, v)]))
+                    lst.append(werkzeug.url_encode([(k, v)]))
 
-        if l:
-            path += '?' + '&'.join(l)
+        if lst:
+            path += '?' + '&'.join(lst)
         return path
 
 
@@ -107,7 +109,8 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
     @http.route(['/shop',
                  '/shop/page/<int:page>',
                  '/shop/category/<model("product.public.category"):category>',
-                 '/shop/category/<model("product.public.category"):category>/page/<int:page>',
+                 '/shop/category/<model("product.public.category"):category>\
+                 /page/<int:page>',
                  '/shop/brands'],
                 type='http',
                 auth='public',
@@ -130,7 +133,8 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         if category:
             domain += [('public_categ_ids', 'child_of', int(category))]
         attrib_list = request.httprequest.args.getlist('attrib')
-        attrib_values = [map(int, v.split('-')) for v in attrib_list if v]
+        attrib_values = [map(int, v.split('-')) for
+                         v in attrib_list if v]  # pylint: disable=W0141
         attrib_set = set([v[1] for v in attrib_values])
         if attrib_values:
             attrib = None
@@ -256,9 +260,10 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
                        'compute_currency': compute_currency,
                        'keep': keep,
                        'style_in_product': lambda style,
-                       product: style.id in [s.id for s in product.website_style_ids],
-                       'attrib_encode': lambda attribs: werkzeug.url_encode([('attrib',
-                                                                              i) for i in attribs])})
+                       product: style.id in
+                       [s.id for s in product.website_style_ids],
+                       'attrib_encode': lambda attribs: werkzeug.url_encode([
+                           ('attrib', i) for i in attribs])})
         return request.website.render('website_sale.products', values)
 
     # Method to get the brands.
@@ -277,7 +282,8 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         if post.get('search'):
             domain += [('name', 'ilike', post.get('search'))]
         brand_ids = brand_obj.search(cr, SUPERUSER_ID, domain)
-        for brand_rec in brand_obj.browse(cr, SUPERUSER_ID, brand_ids, context=context):
+        for brand_rec in brand_obj.browse(cr, SUPERUSER_ID, brand_ids,
+                                          context=context):
             brand_values.append(brand_rec)
 
         keep = QueryURL('/page/product_brands', brand_id=[])
