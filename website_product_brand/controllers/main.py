@@ -217,8 +217,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
             uid,
             category_ids,
             context=context)
-        categs = filter(
-            lambda x: not x.parent_id, categories)  # pylint: disable=W0141
+        categs = filter(lambda x: not x.parent_id, categories)  # pylint: disable=W0141 # noqa
         if category:
             selected_id = int(category)
             child_prod_ids = category_obj.search(
