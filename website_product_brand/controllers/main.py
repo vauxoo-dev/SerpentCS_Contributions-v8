@@ -62,19 +62,17 @@ class table_compute(object):
                 'class': ' '.join(
                     map(
                         lambda axisx: axisx.html_class or '',
-                        prod.website_style_ids))}  # pylint: disable=W0141
+                        prod.website_style_ids))}  # pylint: disable=W0141,W0110 # noqa
             if index <= PPG:
                 maxy = max(maxy, axisy + pos / PPR)
             index += 1
 
         rows = sorted(self.table.items())
-        rows = map(lambda axisx: axisx[1], rows)  # pylint: disable=W0141
+        rows = map(lambda axisx: axisx[1], rows)  # pylint: disable=W0141,W0110
         for col in range(len(rows)):
             cols = sorted(rows[col].items())
             axisx += len(cols)
-            rows[col] = [c for c in
-                         map(lambda axisx: axisx[1], cols) if
-                         c]  # pylint: disable=W0141
+            rows[col] = [c for c in map(lambda axisx: axisx[1], cols) if c]  # pylint: disable=W0141,W0110 # noqa
 
         return rows
 
@@ -133,8 +131,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         if category:
             domain += [('public_categ_ids', 'child_of', int(category))]
         attrib_list = request.httprequest.args.getlist('attrib')
-        attrib_values = [map(int, v.split('-')) for
-                         v in attrib_list if v]  # pylint: disable=W0141
+        attrib_values = [map(int, v.split('-')) for v in attrib_list if v]  # pylint: disable=W0141,W0110 # noqa
         attrib_set = set([v[1] for v in attrib_values])
         if attrib_values:
             attrib = None
@@ -217,7 +214,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
             uid,
             category_ids,
             context=context)
-        categs = filter(lambda x: not x.parent_id, categories)  # pylint: disable=W0141 # noqa
+        categs = filter(lambda x: not x.parent_id, categories)  # pylint: disable=W0141,W0110 # noqa
         if category:
             selected_id = int(category)
             child_prod_ids = category_obj.search(
