@@ -1,0 +1,24 @@
+sudo: required
+
+language: python
+
+python:
+  - "2.7"
+
+env:
+  - VERSION="8.0" ODOO_REPO="odoo/odoo" UNIT_TEST="1"  # test all modules.
+
+virtualenv:
+  system_site_packages: true
+
+install:
+  - git clone https://github.com/vauxoo/maintainer-quality-tools.git -b master-vauxoo-cms-todelete  ${HOME}/maintainer-quality-tools
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - git clone git@github.com:Vauxoo/SerpentCS_Contributions-v8.git -b ${VERSION} ${HOME}/SerpentCS_Contributions-v8
+  - travis_install_nightly
+
+script:
+  - travis_run_tests ${VERSION}
+
+after_success:
+  coveralls
