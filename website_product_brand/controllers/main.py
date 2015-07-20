@@ -4,12 +4,12 @@ from openerp.http import request
 import openerp.addons.website_sale.controllers.main
 from openerp import SUPERUSER_ID
 from openerp.addons.website.models.website import slug
-from openerp.addons.website_sale.controllers.main import table_compute, QueryURL
+from openerp.addons.website_sale.controllers.main import table_compute, QueryURL # noqa
 PPG = 20
 PPR = 4
 
 
-class table_compute(object):
+class table_compute(object):  # flake8: noqa
 
     def __init__(self):
         self.table = {}
@@ -81,7 +81,7 @@ class table_compute(object):
         return rows
 
 
-class QueryURL(object):
+class QueryURL(object):   # flake8: noqa
 
     def __init__(self, path='', **args):
         self.path = path
@@ -108,11 +108,11 @@ class QueryURL(object):
 
 class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
 
-    @http.route(['/shop', '/shop/page/<int:page>', '/shop/category/<model("product.public.category"):category>',
+    @http.route(['/shop', '/shop/page/<int:page>', '/shop/category/<model("product.public.category"):category>',  # noqa
                  '/shop/category/<model("product.public.category"):category>\
-                 /page/<int:page>', '/shop/brands'], type='http', auth='public', website=True)
+                 /page/<int:page>', '/shop/brands'], type='http', auth='public', website=True)  # noqa
     def shop(self, page=0, category=None, search='', brand=None, **post):
-        cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
+        cr, uid, context, pool = request.cr, request.uid, request.context, request.registry  # noqa
         values = {}
         domain = request.website.sale_product_domain()
         if search:
@@ -144,29 +144,29 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
 
             if attrib:
                 domain += [('attribute_line_ids.value_ids', 'in', ids)]
-        keep = QueryURL('/shop', category=category and int(category), search=search, attrib=attrib_list)
+        keep = QueryURL('/shop', category=category and int(category), search=search, attrib=attrib_list)  # noqa
         if not context.get('pricelist'):
             pricelist = self.get_pricelist()
             context['pricelist'] = int(pricelist)
         else:
-            pricelist = pool.get('product.pricelist').browse(cr, uid, context['pricelist'], context)
+            pricelist = pool.get('product.pricelist').browse(cr, uid, context['pricelist'], context)  # noqa
         product_obj = pool.get('product.template')
 
         # Brand's product search
         if brand:
             values.update({'brand': brand})
             product_designer_obj = pool.get('product.brand')
-            brand_ids = product_designer_obj.search(cr, SUPERUSER_ID, [('id', '=', int(brand))])
+            brand_ids = product_designer_obj.search(cr, SUPERUSER_ID, [('id', '=', int(brand))])  # noqa
             domain += [('product_brand_id', 'in', brand_ids)]
         url = '/shop'
-        product_count = product_obj.search_count(cr, uid, domain, context=context)
+        product_count = product_obj.search_count(cr, uid, domain, context=context)  # noqa
         if search:
             post['search'] = search
         if category:
-            category = pool['product.public.category'].browse(cr, uid, int(category), context=context)
+            category = pool['product.public.category'].browse(cr, uid, int(category), context=context)  # noqa
             url = '/shop/category/%s' % slug(category)
-        pager = request.website.pager(url=url, total=product_count, page=page, step=PPG, scope=7, url_args=post)
-        product_ids = product_obj.search(cr, uid, domain, limit=PPG, offset=pager['offset'], order='website_published desc, website_sequence desc', context=context)
+        pager = request.website.pager(url=url, total=product_count, page=page, step=PPG, scope=7, url_args=post)  # noqa
+        product_ids = product_obj.search(cr, uid, domain, limit=PPG, offset=pager['offset'], order='website_published desc, website_sequence desc', context=context)  # noqa
         products = product_obj.browse(cr, uid, product_ids, context=context)
         style_obj = pool['product.style']
         style_ids = style_obj.search(cr, uid, [], context=context)
@@ -183,15 +183,18 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
             categories)
         if category:
             selected_id = int(category)
-            child_prod_ids = category_obj.search(cr, uid, [('parent_id', '=', selected_id)], context=context)
+            child_prod_ids = category_obj.search(cr, uid, [('parent_id', '=', selected_id)], context=context)  # noqa
             children_ids = category_obj.browse(cr, uid, child_prod_ids)
             values.update({'child_list': children_ids})
         attributes_obj = request.registry['product.attribute']
         attributes_ids = attributes_obj.search(cr, uid, [], context=context)
-        attributes = attributes_obj.browse(cr, uid, attributes_ids, context=context)
-        from_currency = pool.get('product.price.type')._get_field_currency(cr, uid, 'list_price', context)
+        attributes = attributes_obj.browse(cr, uid, attributes_ids,
+            context=context)
+        from_currency = pool.get('product.price.type')._get_field_currency(
+            cr, uid, 'list_price', context)
         to_currency = pricelist.currency_id
-        compute_currency = lambda price: pool['res.currency']._compute(cr, uid, from_currency, to_currency, price, context=context)
+        compute_currency = lambda price: pool['res.currency']._compute(
+            cr, uid, from_currency, to_currency, price, context=context)
         brand_obj = pool.get('product.brand')
         brand_ids = brand_obj.search(cr, uid, [], context=context)
         brands = brand_obj.browse(cr, uid, brand_ids, context=context)
@@ -209,14 +212,15 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
                        'attributes': attributes,
                        'compute_currency': compute_currency,
                        'keep': keep,
-                       'style_in_product': lambda style, product: style.id in [s.id for s in product.website_style_ids],
-                       'attrib_encode': lambda attribs: werkzeug.url_encode([('attrib', i) for i in attribs]),
+                       'style_in_product': lambda style, product: style.id in [s.id for s in product.website_style_ids],  # noqa
+                       'attrib_encode': lambda attribs: werkzeug.url_encode([('attrib', i) for i in attribs]),  # noqa
                        'brands': brands,
                        })
         return request.website.render('website_sale.products', values)
 
     # Method to get the brands.
-    @http.route(['/page/product_brands'], type='http', auth='public', website=True)
+    @http.route(['/page/product_brands'], type='http', auth='public',
+        website=True)
     def product_brands(self, **post):
         cr, context, pool = (request.cr, request.context, request.registry)
         brand_values = []
@@ -225,13 +229,13 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         if post.get('search'):
             domain += [('name', 'ilike', post.get('search'))]
         brand_ids = brand_obj.search(cr, SUPERUSER_ID, domain)
-        for brand_rec in brand_obj.browse(cr, SUPERUSER_ID, brand_ids, context=context):
+        for brand_rec in brand_obj.browse(cr, SUPERUSER_ID, brand_ids, context=context):  # noqa
             brand_values.append(brand_rec)
 
         keep = QueryURL('/page/product_brands', brand_id=[])
         values = {'brand_rec': brand_values, 'keep': keep}
         if post.get('search'):
             values.update({'search': post.get('search')})
-        return request.website.render('website_product_brand.product_brands', values)
+        return request.website.render('website_product_brand.product_brands', values)  # noqa
 
 # vim:expandtab:tabstop=4:softtabstop=4:shiftwidth=4:
