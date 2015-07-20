@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+    <template id="product_brands_column" inherit_id="website_sale.products" active="False" customize_show="True" name="Product Brands">
+      <xpath expr="//div[@id='products_grid_before']" position="inside">
+          <ul class="nav nav-pills nav-stacked mt16">
+              <li t-att-class=" '' if brand else 'active' "><a t-att-href="keep('/shop',brand=0)">All Brands</a>
+                  <ul class="nav nav-pills nav-stacked nav-hierarchy">
+                  <t t-foreach="brands" t-as="b">
+                      <li t-att-class="'active' if b.id == int(brand or 0) else ''">
+                          <a t-att-href="keep('/shop/brands',brand = b.id)"><t t-esc="b.name"/></a>
+                      </li>
+                  </t>
+                  </ul>
+              </li>
+          </ul>
+      </xpath>
+      <xpath expr="//div[@id='products_grid_before']" position="attributes">
+          <attribute name="class">col-md-3 hidden-xs</attribute>
+      </xpath>
+      <xpath expr="//div[@id='products_grid']" position="attributes">
+          <attribute name="class">col-md-9</attribute>
+      </xpath>
+    </template>
 
     <!-- Page template for displaying Brands -->
     <template id="product_brands" name="Brands">
