@@ -87,6 +87,9 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         from_currency = pool.get('product.price.type')._get_field_currency(cr, uid, 'list_price', context)
         to_currency = pricelist.currency_id
         compute_currency = lambda price: pool['res.currency']._compute(cr, uid, from_currency, to_currency, price, context=context)
+        brand_obj = pool.get('product.brand')
+        brand_ids = brand_obj.search(cr, uid, [], context=context)
+        brands = brand_obj.browse(cr, uid, brand_ids, context=context)
         values.update({'search': search,
                        'category': category,
                        'attrib_values': attrib_values,
@@ -102,7 +105,9 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
                        'compute_currency': compute_currency,
                        'keep': keep,
                        'style_in_product': lambda style, product: style.id in [s.id for s in product.website_style_ids],
-                       'attrib_encode': lambda attribs: werkzeug.url_encode([('attrib', i) for i in attribs])})
+                       'attrib_encode': lambda attribs: werkzeug.url_encode([('attrib', i) for i in attribs]),
+                       'brands': brands,
+                       })
         return request.website.render('website_sale.products', values)
 
     # Method to get the brands.
