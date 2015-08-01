@@ -4,7 +4,7 @@ from openerp.http import request
 import openerp.addons.website_sale.controllers.main
 from openerp import SUPERUSER_ID
 from openerp.addons.website.models.website import slug
-from openerp.addons.website_sale.controllers.main import table_compute, QueryURL # noqa
+from openerp.addons.website_sale.controllers.main import table_compute, QueryURL  # noqa
 PPG = 20
 PPR = 4
 
@@ -189,7 +189,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         attributes_obj = request.registry['product.attribute']
         attributes_ids = attributes_obj.search(cr, uid, [], context=context)
         attributes = attributes_obj.browse(cr, uid, attributes_ids,
-            context=context)
+                                           context=context)
         from_currency = pool.get('product.price.type')._get_field_currency(
             cr, uid, 'list_price', context)
         to_currency = pricelist.currency_id
@@ -220,7 +220,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
 
     # Method to get the brands.
     @http.route(['/page/product_brands'], type='http', auth='public',
-        website=True)
+                website=True)
     def product_brands(self, **post):
         cr, context, pool = (request.cr, request.context, request.registry)
         brand_values = []

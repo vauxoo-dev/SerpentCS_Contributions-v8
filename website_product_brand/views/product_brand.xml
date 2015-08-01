@@ -5,14 +5,14 @@
       <xpath expr="//div[@id='products_grid_before']" position="inside">
           <ul class="nav nav-pills nav-stacked mt16">
               <li t-att-class=" '' if brand else 'active' "><a t-att-href="keep('/shop',brand=0)">All Brands</a>
-                  <ul class="nav nav-pills nav-stacked nav-hierarchy">
-                  <t t-foreach="brands" t-as="b">
-                      <li t-att-class="'active' if b.id == int(brand or 0) else ''">
-                          <a t-att-href="keep('/shop/brands',brand = b.id)"><t t-esc="b.name"/></a>
-                      </li>
-                  </t>
-                  </ul>
+
               </li>
+                <select class="nav nav-pills nav-stacked nav-hierarchy">
+                  <t t-foreach="brands" t-as="b">
+                      <option t-att-class="'active' if b.id == int(brand or 0) else ''" t-att-value="keep('/shop/brands',brand = b.id)"><t t-esc="b.name"/>
+                      </option>
+                  </t>
+                  </select>
           </ul>
       </xpath>
       <xpath expr="//div[@id='products_grid_before']" position="attributes">
