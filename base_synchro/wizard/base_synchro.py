@@ -30,31 +30,48 @@ import threading
 import unicodedata
 from openerp.osv import fields, osv
 
+
 class RPCProxyOne(object):
+
     def __init__(self, server, ressource):
         self.server = server
-        local_url = 'http://%s:%d/xmlrpc/common' % (server.server_url, server.server_port)
+        local_url = 'http://%s:%d/xmlrpc/common' % (
+            server.server_url, server.server_port)
         rpc = xmlrpclib.ServerProxy(local_url)
         self.uid = rpc.login(server.server_db, server.login, server.password)
-        local_url = 'http://%s:%d/xmlrpc/object' % (server.server_url, server.server_port)
+        local_url = 'http://%s:%d/xmlrpc/object' % (
+            server.server_url, server.server_port)
         self.rpc = xmlrpclib.ServerProxy(local_url)
         self.ressource = ressource
+
     def __getattr__(self, name):
-        return lambda cr, uid, *args, **kwargs: self.rpc.execute(self.server.server_db, self.uid, self.server.password, self.ressource, name, *args)
+        return lambda cr, uid, *args, **kwargs: self.rpc.execute(
+            self.server.server_db, self.uid, self.server.password, self.ressource, name, *args)
+
 
 class RPCProxy(object):
+
     def __init__(self, server):
         self.server = server
+
     def get(self, ressource):
         return RPCProxyOne(self.server, ressource)
 
+
 class base_synchro(osv.TransientModel):
+
     """Base Synchronization """
     _name = 'base.synchro'
 
     _columns = {
-        'server_url': fields.many2one('base.synchro.server', "Server URL", required=True),
-        'user_id': fields.many2one('res.users', "Send Result To",),
+        'server_url': fields.many2one(
+            'base.synchro.server',
+            "Server URL",
+            required=True),
+        'user_id': fields.many2one(
+            'res.users',
+            "Send Result To",
+        ),
     }
 
     _defaults = {
@@ -68,16 +85,16 @@ class base_synchro(osv.TransientModel):
     report_write = 0
 
     def input(self, cr, uid, ids, value, context=None):
-#        for key,valu in  zip(value.keys(),value.values()) :
-#            if type(valu) is unicode:
-#                val=tools.ustr(valu)
-#                print "\n\n value",val
-#                c=unicodedata.normalize('NFKD', valu).encode('ascii','ignore')#
-#                a=valu.encode('utf-8')
-#                print "aaaa.=",a
-#                value[key]=val
+        #        for key,valu in  zip(value.keys(),value.values()) :
+        #            if type(valu) is unicode:
+        #                val=tools.ustr(valu)
+        #                print "\n\n value",val
+        #                c=unicodedata.normalize('NFKD', valu).encode('ascii','ignore')#
+        #                a=valu.encode('utf-8')
+        #                print "aaaa.=",a
+        #                value[key]=val
         return value
-    
+
     def synchronize(self, cr, uid, server, object, context=None):
         pool = pooler.get_pool(cr.dbname)
         self.meta = {}
@@ -86,20 +103,18 @@ class base_synchro(osv.TransientModel):
         pool2 = pool
         # try:
         if object.action in ('d', 'b'):
-            ids = pool1.get('base.synchro.obj').get_ids(cr, uid,
-                object.model_id.model,
-                object.synchronize_date,
-                eval(object.domain),
-                {'action':'d'}
-            )
+            ids = pool1.get('base.synchro.obj').get_ids(
+                cr, uid, object.model_id.model, object.synchronize_date, eval(
+                    object.domain), {
+                    'action': 'd'})
 
         if object.action in ('u', 'b'):
-            ids += pool2.get('base.synchro.obj').get_ids(cr, uid,
-                object.model_id.model,
-                object.synchronize_date,
-                eval(object.domain),
-                {'action':'u'}
-            )
+            ids += pool2.get('base.synchro.obj').get_ids(cr,
+                                                         uid,
+                                                         object.model_id.model,
+                                                         object.synchronize_date,
+                                                         eval(object.domain),
+                                                         {'action': 'u'})
         ids.sort()
         iii = 0
         for dt, id, action in ids:
@@ -113,15 +128,29 @@ class base_synchro(osv.TransientModel):
             fields = False
             if object.model_id.model == 'crm.case.history':
                 fields = ['email', 'description', 'log_id']
-            value = pool_src.get(object.model_id.model).read(cr, uid, [id], fields, context=context)[0] 
+            value = pool_src.get(
+                object.model_id.model).read(
+                cr,
+                uid,
+                [id],
+                fields,
+                context=context)[0]
             if 'create_date' in value:
                 del value['create_date']
             if 'write_date' in value:
                 del value['write_date']
-            for key , val in value.iteritems():
-                if type(val) == tuple:
-                    value.update({key:val[0]})
-            value = self.data_transform(cr, uid, pool_src, pool_dest, object.model_id.model, value, action, context=context)
+            for key, val in value.iteritems():
+                if isinstance(val, tuple):
+                    value.update({key: val[0]})
+            value = self.data_transform(
+                cr,
+                uid,
+                pool_src,
+                pool_dest,
+                object.model_id.model,
+                value,
+                action,
+                context=context)
             id2 = self.get_id(cr, uid, object.id, id, action, context=context)
             #
             # Transform value
@@ -136,19 +165,30 @@ class base_synchro(osv.TransientModel):
 
             if id2:
                 # try:
-                pool_dest.get(object.model_id.model).write(cr, uid, [id2], value, context=context)
+                pool_dest.get(
+                    object.model_id.model).write(
+                    cr,
+                    uid,
+                    [id2],
+                    value,
+                    context=context)
                 # except Exception, e:
                 # self.report.append('ERROR: Unable to update record ['+str(id2)+']:'+str(value.get('name', '?')))
                 self.report_total += 1
                 self.report_write += 1
             else:
                 value_encode = self.input(cr, uid, ids, value, context=context)
-                idnew = pool_dest.get(object.model_id.model).create(cr, uid, value_encode, context=context)
-                synid = self.pool.get('base.synchro.obj.line').create(cr, uid, {
-                    'obj_id': object.id,
-                    'local_id': (action == 'u') and id or idnew,
-                    'remote_id': (action == 'd') and id or idnew
-                }, context=context)
+                idnew = pool_dest.get(
+                    object.model_id.model).create(
+                    cr,
+                    uid,
+                    value_encode,
+                    context=context)
+                synid = self.pool.get('base.synchro.obj.line').create(
+                    cr, uid, {
+                        'obj_id': object.id, 'local_id': (
+                            action == 'u') and id or idnew, 'remote_id': (
+                            action == 'd') and id or idnew}, context=context)
                 self.report_total += 1
                 self.report_create += 1
             self.meta = {}
@@ -159,17 +199,34 @@ class base_synchro(osv.TransientModel):
         line_pool = pool.get('base.synchro.obj.line')
         field_src = (action == 'u') and 'local_id' or 'remote_id'
         field_dest = (action == 'd') and 'local_id' or 'remote_id'
-        rid = line_pool.search(cr, uid, [('obj_id', '=', object_id), (field_src, '=', id)], context=context)
+        rid = line_pool.search(
+            cr, uid, [
+                ('obj_id', '=', object_id), (field_src, '=', id)], context=context)
         result = False
         if rid:
-            result = line_pool.read(cr, uid, rid, [field_dest], context=context)[0][field_dest]
+            result = line_pool.read(
+                cr,
+                uid,
+                rid,
+                [field_dest],
+                context=context)[0][field_dest]
         return result
 
-    def relation_transform(self, cr, uid, pool_src, pool_dest, object, id, action, context=None):
+    def relation_transform(
+            self,
+            cr,
+            uid,
+            pool_src,
+            pool_dest,
+            object,
+            id,
+            action,
+            context=None):
         if not id:
             return False
         pool = pooler.get_pool(cr.dbname)
-        cr.execute('''select o.id from base_synchro_obj o left join ir_model m on (o.model_id =m.id) where
+        cr.execute(
+            '''select o.id from base_synchro_obj o left join ir_model m on (o.model_id =m.id) where
                 m.model=%s and
                 o.active''', (object,))
         obj = cr.fetchone()
@@ -199,10 +256,20 @@ class base_synchro(osv.TransientModel):
     #        Otherwise, use the name_search method
     #
 
-    def data_transform(self, cr, uid, pool_src, pool_dest, object, data, action='u', context=None):
+    def data_transform(
+            self,
+            cr,
+            uid,
+            pool_src,
+            pool_dest,
+            object,
+            data,
+            action='u',
+            context=None):
         self.meta.setdefault(pool_src, {})
         if not object in self.meta[pool_src]:
-            self.meta[pool_src][object] = pool_src.get(object).fields_get(cr, uid)
+            self.meta[pool_src][object] = pool_src.get(
+                object).fields_get(cr, uid)
         fields = self.meta[pool_src][object]
         for f in fields:
             if f not in data:
@@ -210,19 +277,37 @@ class base_synchro(osv.TransientModel):
             ftype = fields[f]['type']
             if ftype in ('function', 'one2many', 'one2one'):
                 del data[f]
-            
+
             elif ftype == 'many2one':
                 if (isinstance(data[f], list)) and data[f]:
                     fdata = data[f][0]
                 else:
                     fdata = data[f]
-                df = self.relation_transform(cr, uid, pool_src, pool_dest, fields[f]['relation'], fdata, action, context=context)
+                df = self.relation_transform(
+                    cr,
+                    uid,
+                    pool_src,
+                    pool_dest,
+                    fields[f]['relation'],
+                    fdata,
+                    action,
+                    context=context)
                 data[f] = df
                 if not data[f]:
                     del data[f]
-            
+
             elif ftype == 'many2many':
-                res = map(lambda x: self.relation_transform(cr, uid, pool_src, pool_dest, fields[f]['relation'], x, action, context=context), data[f])
+                res = map(
+                    lambda x: self.relation_transform(
+                        cr,
+                        uid,
+                        pool_src,
+                        pool_dest,
+                        fields[f]['relation'],
+                        x,
+                        action,
+                        context=context),
+                    data[f])
                 data[f] = [(6, 0, [x for x in res if x])]
         del data['id']
         return data
@@ -232,19 +317,25 @@ class base_synchro(osv.TransientModel):
     # Synchronize these obejcts
     #
 
-
     def upload_download(self, cr, uid, ids, context=None):
         start_date = time.strftime('%Y-%m-%d, %Hh %Mm %Ss')
         syn_obj = self.browse(cr, uid, ids, context=context)[0]
         pool = pooler.get_pool(cr.dbname)
-        server = pool.get('base.synchro.server').browse(cr, uid, syn_obj.server_url.id, context=context)
+        server = pool.get('base.synchro.server').browse(
+            cr,
+            uid,
+            syn_obj.server_url.id,
+            context=context)
         for object in server.obj_ids:
             dt = time.strftime('%Y-%m-%d %H:%M:%S')
             self.synchronize(cr, uid, server, object, context=context)
             if object.action == 'b':
                 time.sleep(1)
                 dt = time.strftime('%Y-%m-%d %H:%M:%S')
-            self.pool.get('base.synchro.obj').write(cr, uid, [object.id], {'synchronize_date': dt}, context=context)
+            self.pool.get('base.synchro.obj').write(
+                cr, uid, [
+                    object.id], {
+                    'synchronize_date': dt}, context=context)
         end_date = time.strftime('%Y-%m-%d, %Hh %Mm %Ss')
         if syn_obj.user_id:
             request = pooler.get_pool(cr.dbname).get('res.request')
@@ -264,18 +355,28 @@ Exceptions:
             ''' % (start_date, end_date, self.report_total, self.report_write, self.report_create)
             summary += '\n'.join(self.report)
             request.create(cr, uid, {
-                'name' : "Synchronization report",
-                'act_from' : uid,
-                'act_to' : syn_obj.user_id.id,
+                'name': "Synchronization report",
+                'act_from': uid,
+                'act_to': syn_obj.user_id.id,
                 'body': summary,
             }, context=context)
             return True
 
     def upload_download_multi_thread(self, cr, uid, data, context=None):
-        threaded_synchronization = threading.Thread(target=self.upload_download, args=(cr, uid, data, context))
+        threaded_synchronization = threading.Thread(
+            target=self.upload_download,
+            args=(
+                cr,
+                uid,
+                data,
+                context))
         threaded_synchronization.run()
         data_obj = self.pool.get('ir.model.data')
-        id2 = data_obj._get_id(cr, uid, 'base_synchro', 'view_base_synchro_finish')
+        id2 = data_obj._get_id(
+            cr,
+            uid,
+            'base_synchro',
+            'view_base_synchro_finish')
         if id2:
             id2 = data_obj.browse(cr, uid, id2, context=context).res_id
         return {
