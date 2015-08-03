@@ -6,7 +6,7 @@ python:
   - "2.7"
 
 env:
-- VERSION="8.0" ODOO_REPO="vauxoo/odoo" UNIT_TEST="1"  # test all modules.
+- VERSION="8.0" ODOO_REPO="vauxoo/odoo" UNIT_TEST="1" LINT_CHECK="0" # test all modules.
 
 virtualenv:
   system_site_packages: true
