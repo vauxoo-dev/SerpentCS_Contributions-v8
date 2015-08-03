@@ -35,6 +35,7 @@ This Module depends on product_brand module
     'depends': ['product_brand', 'website_sale'],
     'data': [
         "security/ir.model.access.csv",
+        "views/assets.xml",
         "views/product_brand.xml",
     ],
     'installable': True,
