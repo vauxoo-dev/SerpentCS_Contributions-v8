@@ -18,8 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-{
-    'name': 'Record and Create Modules',
+{'name': 'Record and Create Modules',
     'version': '1.0',
     'category': 'Tools',
     'description': """
@@ -44,14 +43,15 @@ Select datetime criteria of recording and objects to be recorded and Record modu
     'author': 'OpenERP SA, Serpent Consulting Services Pvt. Ltd.',
     'website': 'http://www.openerp.com, http://www.serpentcs.com',
     'depends': ['base'],
-    'data': [
-        'security/ir.model.access.csv',
-        'wizard/base_module_record_object_view.xml',
-        'wizard/base_module_record_data_view.xml',
-    ],
+    'data': ['security/ir.model.access.csv',
+              'wizard/base_module_record_object_view.xml',
+              'wizard/base_module_record_data_view.xml',
+             ],
     'demo': [],
     'installable': True,
-    'auto_install':False,
-    'images': ['images/base_module_record1.jpeg','images/base_module_record2.jpeg','images/base_module_record3.jpeg',]
-}
+    'auto_install': False,
+    'images': ['images/base_module_record1.jpeg',
+               'images/base_module_record2.jpeg',
+               'images/base_module_record3.jpeg',
+               ]}
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -25,39 +25,68 @@ from openerp.tools.translate import _
 
 import time
 
+
 class base_module_data(orm.TransientModel):
     _name = 'base.module.data'
     _description = "Base Module Data"
 
     _columns = {
-        'check_date': fields.datetime('Record from Date', required=True),
-        'objects': fields.many2many('ir.model', 'base_module_record_model_rel', 'objects', 'model_id', 'Objects'),
-        'filter_cond': fields.selection([('created', 'Created'), ('modified', 'Modified'), ('created_modified', 'Created & Modified')], 'Records only', required=True),
+        'check_date': fields.datetime(
+            'Record from Date',
+            required=True),
+        'objects': fields.many2many(
+            'ir.model',
+            'base_module_record_model_rel',
+            'objects',
+            'model_id',
+            'Objects'),
+        'filter_cond': fields.selection(
+            [
+                ('created',
+                 'Created'),
+                ('modified',
+                 'Modified'),
+                ('created_modified',
+                 'Created & Modified')],
+            'Records only',
+            required=True),
         'info_yaml': fields.boolean('YAML'),
     }
 
     def _get_default_objects(self, cr, uid, context=None):
-        names = ('ir.ui.view', 'ir.ui.menu', 'ir.model', 'ir.model.fields', 'ir.model.access',
-            'res.partner', 'res.partner.category', 'workflow',
-            'workflow.activity', 'workflow.transition', 'ir.actions.server', 'ir.server.object.lines')
-        return self.pool.get('ir.model').search(cr, uid, [('model', 'in', names)])
+        names = (
+            'ir.ui.view',
+            'ir.ui.menu',
+            'ir.model',
+            'ir.model.fields',
+            'ir.model.access',
+            'res.partner',
+            'res.partner.category',
+            'workflow',
+            'workflow.activity',
+            'workflow.transition',
+            'ir.actions.server',
+            'ir.server.object.lines')
+        return self.pool.get('ir.model').search(
+            cr, uid, [
+                ('model', 'in', names)])
 
     _defaults = {
         'check_date': lambda *a: time.strftime('%Y-%m-%d %H:%M:%S'),
         'objects': _get_default_objects,
         'filter_cond': 'created',
     }
-    
+
     def _create_xml(self, cr, uid, data, context=None):
         mod = self.pool.get('ir.module.record')
         res_xml = mod.generate_xml(cr, uid)
-        return {'res_text': res_xml }
-    
+        return {'res_text': res_xml}
+
     def _create_yaml(self, cr, uid, data, context=None):
         mod = self.pool.get('ir.module.record')
         res_xml = mod.generate_yaml(cr, uid)
-        return { 'res_text': res_xml }    
-    
+        return {'res_text': res_xml}
+
     def record_objects(self, cr, uid, ids, context=None):
         data = self.read(cr, uid, ids, [], context=context)[0]
         check_date = data['check_date']
@@ -67,33 +96,41 @@ class base_module_data(orm.TransientModel):
         mod_obj = self.pool.get('ir.model')
         mod.recording_data = []
         for id in data['objects']:
-            obj_name=(mod_obj.browse(cr, uid, id)).model
-            obj_pool=self.pool.get(obj_name)
-            if filter =='created':
-                search_condition =[('create_date','>',check_date)]
-            elif filter =='modified':
-                search_condition =[('write_date','>',check_date)]
-            elif filter =='created_modified':
-                search_condition =['|',('create_date','>',check_date),('write_date','>',check_date)]
+            obj_name = (mod_obj.browse(cr, uid, id)).model
+            obj_pool = self.pool.get(obj_name)
+            if filter == 'created':
+                search_condition = [('create_date', '>', check_date)]
+            elif filter == 'modified':
+                search_condition = [('write_date', '>', check_date)]
+            elif filter == 'created_modified':
+                search_condition = [
+                    '|', ('create_date', '>', check_date), ('write_date', '>', check_date)]
             if '_log_access' in dir(obj_pool):
-                  if not (obj_pool._log_access):
-                      search_condition=[]
-                  if '_auto' in dir(obj_pool):
-                      if not obj_pool._auto:
-                          continue
-            search_ids=obj_pool.search(cr,uid,search_condition)
+                if not (obj_pool._log_access):
+                    search_condition = []
+                if '_auto' in dir(obj_pool):
+                    if not obj_pool._auto:
+                        continue
+            search_ids = obj_pool.search(cr, uid, search_condition)
             for s_id in search_ids:
-                 args=(cr.dbname,uid,obj_name,'copy', s_id,{}, context)
-                 mod.recording_data.append(('query', args, {}, s_id))
-         
+                args = (cr.dbname, uid, obj_name, 'copy', s_id, {}, context)
+                mod.recording_data.append(('query', args, {}, s_id))
+
         mod_obj = self.pool.get('ir.model.data')
         if len(mod.recording_data):
             if data['info_yaml']:
-                res=self._create_yaml(cr, uid, data, context)
+                res = self._create_yaml(cr, uid, data, context)
             else:
-                res=self._create_xml(cr, uid, data, context)
-            model_data_ids = mod_obj.search(cr, uid, [('model', '=', 'ir.ui.view'), ('name', '=', 'module_create_xml_view')], context=context)
-            resource_id = mod_obj.read(cr, uid, model_data_ids, fields=['res_id'], context=context)[0]['res_id']
+                res = self._create_xml(cr, uid, data, context)
+            model_data_ids = mod_obj.search(
+                cr, uid, [
+                    ('model', '=', 'ir.ui.view'), ('name', '=', 'module_create_xml_view')], context=context)
+            resource_id = mod_obj.read(
+                cr,
+                uid,
+                model_data_ids,
+                fields=['res_id'],
+                context=context)[0]['res_id']
             return {
                 'name': _('Data Recording'),
                 'context': {'default_res_text': tools.ustr(res['res_text'])},
@@ -105,8 +142,21 @@ class base_module_data(orm.TransientModel):
                 'target': 'new',
             }
 
-        model_data_ids = mod_obj.search(cr, uid,[('model', '=', 'ir.ui.view'), ('name', '=', 'module_recording_message_view')], context=context)
-        resource_id = mod_obj.read(cr, uid, model_data_ids, fields=['res_id'], context=context)[0]['res_id']
+        model_data_ids = mod_obj.search(cr,
+                                        uid,
+                                        [('model',
+                                          '=',
+                                          'ir.ui.view'),
+                                         ('name',
+                                          '=',
+                                          'module_recording_message_view')],
+                                        context=context)
+        resource_id = mod_obj.read(
+            cr,
+            uid,
+            model_data_ids,
+            fields=['res_id'],
+            context=context)[0]['res_id']
         return {
             'name': _('Module Recording'),
             'context': context,
@@ -120,14 +170,15 @@ class base_module_data(orm.TransientModel):
 
 base_module_data()
 
+
 class base_module_record_data(orm.TransientModel):
     _name = 'base.module.record.data'
     _description = "Base Module Record Data"
-                
+
     _columns = {
         'res_text': fields.text('Result'),
-    }    
-    
+    }
+
 base_module_record_data()
 
-#vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

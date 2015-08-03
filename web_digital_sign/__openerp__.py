@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
-#    
+#
 #    OpenERP, Open Source Management Solution
 #    Copyright (C) 2004-2010 OpenERP SA (<http://www.openerp.com>)
 #    Copyright (C) 2011-2015 Serpent Consulting Services Pvt. Ltd. (<http://www.serpentcs.com>).
@@ -21,9 +21,9 @@
 ##############################################################################
 
 {
-    "name" : "Web Digital Signature",
-    "version" : "1.0",
-    "author" : "Serpent Consulting Services Pvt. Ltd.",
+    "name": "Web Digital Signature",
+    "version": "1.0",
+    "author": "Serpent Consulting Services Pvt. Ltd.",
     "category": '',
     'complexity': "easy",
     'depends': ['web'],
@@ -37,7 +37,7 @@
     ],
     'website': 'http://www.serpentcs.com',
     'qweb': ['static/src/xml/digital_sign.xml'],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
 }
 

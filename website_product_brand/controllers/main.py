@@ -4,7 +4,7 @@ from openerp.http import request
 import openerp.addons.website_sale.controllers.main
 from openerp import SUPERUSER_ID
 from openerp.addons.website.models.website import slug
-from openerp.addons.website_sale.controllers.main import table_compute, QueryURL # noqa
+from openerp.addons.website_sale.controllers.main import table_compute, QueryURL  # noqa
 PPG = 20
 PPR = 4
 
@@ -172,15 +172,20 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         style_ids = style_obj.search(cr, uid, [], context=context)
         styles = style_obj.browse(cr, uid, style_ids, context=context)
         category_obj = pool['product.public.category']
-        category_ids = category_obj.search(cr, uid, [], context=context)
+        public_categs = []
+        published_product_ids = product_obj.search(
+            cr, uid, [('website_published', '=', True)])
+        published_products = product_obj.browse(cr, uid, published_product_ids,
+                                                context=context)
+        for pp in published_products:
+            for pc in pp.public_categ_ids:
+                if pc.id not in public_categs:
+                    public_categs.append(pc.id)
         categories = category_obj.browse(
             cr,
             uid,
-            category_ids,
+            public_categs,
             context=context)
-        categs = filter(  # pylint: disable=W0141,W0110
-            lambda x: not x.parent_id,
-            categories)
         if category:
             selected_id = int(category)
             child_prod_ids = category_obj.search(cr, uid, [('parent_id', '=', selected_id)], context=context)  # noqa
@@ -189,7 +194,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         attributes_obj = request.registry['product.attribute']
         attributes_ids = attributes_obj.search(cr, uid, [], context=context)
         attributes = attributes_obj.browse(cr, uid, attributes_ids,
-            context=context)
+                                           context=context)
         from_currency = pool.get('product.price.type')._get_field_currency(
             cr, uid, 'list_price', context)
         to_currency = pricelist.currency_id
@@ -208,7 +213,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
                        'bins': table_compute().process(products),
                        'rows': PPR,
                        'styles': styles,
-                       'categories': categs,
+                       'categories': categories,
                        'attributes': attributes,
                        'compute_currency': compute_currency,
                        'keep': keep,
@@ -220,7 +225,7 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
 
     # Method to get the brands.
     @http.route(['/page/product_brands'], type='http', auth='public',
-        website=True)
+                website=True)
     def product_brands(self, **post):
         cr, context, pool = (request.cr, request.context, request.registry)
         brand_values = []

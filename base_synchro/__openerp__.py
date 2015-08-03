@@ -19,8 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-{
-    "name": "Multi-DB Synchronization",
+{"name": "Multi-DB Synchronization",
     "version": "1.1",
     "category": "Tools",
     "description": """
@@ -30,15 +29,17 @@ Synchronization with all objects.
 Configure servers and trigger synchronization with its database objects.
 """,
     "author": "OpenERP SA, Serpent Consulting Services Pvt. Ltd.",
-    "images": ['images/1_servers_synchro.jpeg','images/2_synchronize.jpeg','images/3_objects_synchro.jpeg',],
+    "images": ['images/1_servers_synchro.jpeg',
+               'images/2_synchronize.jpeg',
+               'images/3_objects_synchro.jpeg',
+               ],
     "depends": ["base"],
     'website': 'http://www.serpentcs.com',
-    "data": [
-        "wizard/base_synchro_view.xml",
-        "base_synchro_view.xml",
-        "security/ir.model.access.csv",
-    ],
+    "data": ["wizard/base_synchro_view.xml",
+              "base_synchro_view.xml",
+              "security/ir.model.access.csv",
+             ],
     "installable": True,
     "auto_install": False,
-}
+ }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
