@@ -37,7 +37,7 @@
     ],
     'website': 'http://www.serpentcs.com',
     'qweb': ['static/src/xml/digital_sign.xml'],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
 }
 
