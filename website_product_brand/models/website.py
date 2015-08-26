@@ -3,7 +3,7 @@
 #
 #    OpenERP, Open Source Management Solution
 #    Copyright (C) 2012-Today Serpent Consulting Services Pvt. Ltd.
-#    (<http://www.serpentcs.com>)
+#                                     (<http://www.serpentcs.com>)
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,17 @@
 #
 ##############################################################################
 
-from . import controllers
-from . import models
+from openerp.osv import orm
+from openerp.http import request
 
-# vim:expandtab:tabstop=4:softtabstop=4:shiftwidth=4:
+
+class WebSite(orm.Model):
+    _inherit = 'website'
+
+    def sale_product_domain(self, cr, uid, ids, context=None):
+        domain = super(WebSite, self).sale_product_domain(cr, uid, ids=ids,
+                                                          context=context)
+        if 'brand_id' in request.env.context:
+            domain.append(
+                ('product_brand_id', '=', request.env.context['brand_id']))
+        return domain
