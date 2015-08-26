@@ -27,8 +27,26 @@ class WebsiteSale(website_sale):
                                                brand=brand, search=search,
                                                **post)
         brand_obj = pool.get('product.brand')
+        product_obj = pool.get('product.template')
         brand_ids = brand_obj.search(cr, SUPERUSER_ID, [], context=context)
         brands = brand_obj.browse(cr, SUPERUSER_ID, brand_ids, context=context)
+        category_obj = pool['product.public.category']
+        public_categs = []
+        published_product_ids = product_obj.search(
+            cr, SUPERUSER_ID, [('website_published', '=', True)])
+        published_products = product_obj.browse(cr, SUPERUSER_ID,
+                                                published_product_ids,
+                                                context=context)
+        for pp in published_products:
+            for pc in pp.public_categ_ids:
+                if pc.id not in public_categs:
+                    public_categs.append(pc.id)
+        categories = category_obj.browse(
+            cr,
+            SUPERUSER_ID,
+            public_categs,
+            context=context)
+        result.qcontext['categories'] = categories
         result.qcontext['brand'] = brand
         result.qcontext['brands'] = brands
         return result
