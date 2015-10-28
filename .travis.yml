@@ -1,24 +1,47 @@
-sudo: required
-
 language: python
+
+sudo: false
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+
+addons:
+  apt:
+    sources:
+      - pov-wkhtmltopdf
+    packages:
+      - expect-dev
+      - python-lxml
+      - python-simplejson
+      - python-yaml
+      - wkhtmltopdf
+
+# set up an X server to run wkhtmltopdf.
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
 
 python:
   - "2.7"
 
-env:
-- VERSION="8.0" ODOO_REPO="vauxoo/odoo" UNIT_TEST="1" LINT_CHECK="0" # test all modules.
-
 virtualenv:
   system_site_packages: true
+
+env:
+  global:
+  - PHANTOMJS_TESTS="0" LINT_CHECK=0 TESTS="0" VERSION="8.0" ODOO_REPO="vauxoo/odoo"
+
+  matrix:
+  - TESTS="1"
 
 install:
   - git clone https://github.com/vauxoo/maintainer-quality-tools.git -b master ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - git clone https://github.com/vauxoo/SerpentCS_Contributions-v8.git -b ${VERSION} ${HOME}/SerpentCS_Contributions-v8
   - travis_install_nightly
 
 script:
-  - travis_run_tests ${VERSION}
+  - travis_wait travis_run_tests
 
 after_success:
-  coveralls
+  - travis_after_tests_success
