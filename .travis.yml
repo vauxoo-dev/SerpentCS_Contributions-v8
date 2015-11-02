@@ -37,6 +37,7 @@ env:
 
 install:
   - git clone https://github.com/vauxoo/maintainer-quality-tools.git -b master ${HOME}/maintainer-quality-tools
+  - git clone git@github.com:OCA/product-attribute.git -b 8.0 ${HOME}/product-attribute
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - travis_install_nightly
 
