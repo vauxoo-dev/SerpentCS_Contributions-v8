@@ -43,7 +43,7 @@ class WebsiteSale(website_sale):
             SUPERUSER_ID,
             public_categs,
             context=context)
-        result.qcontext['categories'] = categories
+        # result.qcontext['categories'] = categories
         result.qcontext['brand'] = brand
         return result
 
